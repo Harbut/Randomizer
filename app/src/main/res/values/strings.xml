@@ -6,4 +6,5 @@
     <string name="random_number">Random Number:</string>
     <string name="incorrect_input">Enter valid numbers.</string>
     <string name="invalid_range">The range must contain at least one number</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
 </resources>
