@@ -1,15 +1,21 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -24,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,6 +51,9 @@ fun MainScreen(modifier: Modifier = Modifier) {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+                DrawerHeader()
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
                 NavigationDrawerItem(
                     icon = { Icon(painterResource(R.drawable.ic_number), contentDescription = stringResource(R.string.number_generator)) },
@@ -99,6 +109,28 @@ fun MainScreen(modifier: Modifier = Modifier) {
             }
         }
     )
+}
+
+@Composable
+fun DrawerHeader() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.logo), // Ваша іконка
+            contentDescription = stringResource(R.string.app_name),
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(id = R.string.app_name), // Назва додатку
+            style = MaterialTheme.typography.headlineSmall
+        )
+    }
 }
 
 @Composable

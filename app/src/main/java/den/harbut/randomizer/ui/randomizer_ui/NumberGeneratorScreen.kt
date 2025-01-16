@@ -1,12 +1,5 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,31 +13,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import den.harbut.randomizer.R
-import kotlinx.coroutines.delay
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.random.Random
 import den.harbut.randomizer.utils.realRange
 import den.harbut.randomizer.utils.generateRandomNumbers
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun NumberGeneratorScreen(modifier: Modifier = Modifier){
-    var randomNumbers by remember { mutableStateOf<List<Long>>(emptyList()) }
+    var randomNumbers by remember { mutableStateOf<List<Long>>(listOf(0)) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var minNumber by rememberSaveable { mutableStateOf("0") }
     var maxNumber by rememberSaveable { mutableStateOf("10") }
@@ -177,7 +163,10 @@ fun ParametersDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.min_number)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
                     modifier = Modifier.onFocusChanged { focusState ->
                         isMinNumberFocused = focusState.isFocused
                         if (!focusState.isFocused && minNumberState.isEmpty()) {
@@ -197,7 +186,10 @@ fun ParametersDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.max_number)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
                     modifier = Modifier.onFocusChanged { focusState ->
                         isMaxNumberFocused = focusState.isFocused
                         if (!focusState.isFocused && maxNumberState.isEmpty()) {
@@ -247,7 +239,10 @@ fun ParametersDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.numbers_to_generate)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
                     enabled = !avoidDuplicates || numbersToGenerateMax != "0",
                     modifier = Modifier.onFocusChanged { focusState -> // Обробка зміни фокусу
                         isFocused = focusState.isFocused
@@ -269,7 +264,10 @@ fun ParametersDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.animation_duration)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
                     modifier = Modifier.onFocusChanged { focusState ->
                         isAnimationDurationFocused = focusState.isFocused
                         if (!focusState.isFocused) {
@@ -313,6 +311,15 @@ fun ParametersDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RandomNumberCard(number: Long, modifier: Modifier = Modifier){
+    val text = number.toString()
+    val fontSize = when(text.length){
+        in 0..3 -> 65.sp
+        4 -> 55.sp
+        5 -> 45.sp
+        6 -> 40.sp
+        in 7..8 -> 30.sp
+        else -> 25.sp
+    }
     Card(modifier =  Modifier
         .padding(4.dp)
         .size(150.dp)) {
@@ -322,7 +329,7 @@ fun RandomNumberCard(number: Long, modifier: Modifier = Modifier){
             .fillMaxSize()){
             Text(
                 text = number.toString(),
-                style = MaterialTheme.typography.displayLarge.copy(fontSize = 25.sp),
+                fontSize = fontSize,
                 textAlign = TextAlign.Center,
             )
         }
@@ -330,42 +337,8 @@ fun RandomNumberCard(number: Long, modifier: Modifier = Modifier){
 }
 
 @Composable
-fun AutoResizingText(
-    text: String,
-    modifier: Modifier = Modifier,
-    style: TextStyle = TextStyle.Default,
-    minFontSize: Int = 12,
-    maxFontSize: Int = 40
-) {
-    var fontSizeValue by remember { mutableStateOf(maxFontSize.sp) }
-    var readyToDraw by remember { mutableStateOf(false) }
+fun RandomNumbersCards(numbers: List<Long>, modifier: Modifier = Modifier){
 
-    Layout(
-        content = {
-            Text(
-                text = text,
-                modifier = Modifier,
-                style = style.copy(fontSize = fontSizeValue),
-                onTextLayout = { textLayoutResult ->
-                    if (textLayoutResult.didOverflowWidth) {
-                        if (fontSizeValue.value > minFontSize) {
-                            fontSizeValue = (fontSizeValue.value - 1).sp
-                        }
-                    } else {
-                        readyToDraw = true
-                    }
-                }
-            )
-        },
-        modifier = modifier
-    ) { measurables, constraints ->
-        val textPlaceable = measurables[0].measure(constraints)
-        layout(textPlaceable.width, textPlaceable.height) {
-            if (readyToDraw) {
-                textPlaceable.placeRelative(0, 0)
-            }
-        }
-    }
 }
 
 

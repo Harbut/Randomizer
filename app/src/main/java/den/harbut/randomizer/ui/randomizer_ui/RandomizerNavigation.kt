@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import den.harbut.randomizer.ui.randomizer_ui.NumberGeneratorScreen
 
 sealed class Screen(val route: String) {
     object NumberGenerator : Screen("number_generator")
