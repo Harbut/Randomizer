@@ -8,4 +8,5 @@
     <string name="incorrect_input">Введіть коректні числа.</string>
     <string name="invalid_range">Діапазон має містити хоча б одне число</string>
     <string name="copied_to_clipboard">Скопійовано в буфер</string>
+    <string name="no_number_generated">No Number</string>
 </resources>

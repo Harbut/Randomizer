@@ -39,12 +39,13 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
+import den.harbut.randomizer.ui.randomizer_ui.MainScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            RandomNumberGeneratorApp()
+            MainScreen()
         }
     }
 }
