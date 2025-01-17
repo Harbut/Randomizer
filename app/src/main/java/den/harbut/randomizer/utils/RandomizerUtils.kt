@@ -9,9 +9,9 @@ fun generateRandomNumbers(
     maxNumber: String,
     numbersToGenerate: String,
     avoidDuplicates: Boolean
-): List<Long> {
-    val min = minNumber.toLong()
-    val max = maxNumber.toLong()
+): List<Int> {
+    val min = minNumber.toInt()
+    val max = maxNumber.toInt()
     val count = numbersToGenerate.toIntOrNull() ?: 1
 
     if(count <= 0) {
@@ -31,20 +31,27 @@ fun generateRandomNumbers(
     }
 }
 
-fun realRange(min: Long, max: Long): LongRange{
+fun realRange(min: Int, max: Int): IntRange{
     val realMin = min(min, max)
     val realMax = max(min, max)
     return realMin..realMax
 }
 
-private fun generateNumbers(range: LongRange, count: Int): List<Long>{
-    return List(count){Random.nextLong(range.first, range.last + 1)}
+fun realRangeCount(min: Int, max: Int): Int{
+    val realMin = min(min, max)
+    val realMax = max(min, max)
+    val range = realMin..realMax
+    return range.count()
 }
 
-private fun generateUniqueNumbers(range: LongRange, count: Int): List<Long>{
-    val numbers = mutableListOf<Long>()
+private fun generateNumbers(range: IntRange, count: Int): List<Int>{
+    return List(count){Random.nextInt(range.first, range.last + 1)}
+}
+
+private fun generateUniqueNumbers(range: IntRange, count: Int): List<Int>{
+    val numbers = mutableListOf<Int>()
     while (numbers.size < count){
-        val number = Random.nextLong(range.first, range.last + 1)
+        val number = Random.nextInt(range.first, range.last + 1)
         if (!numbers.contains(number)){
             numbers.add(number)
         }

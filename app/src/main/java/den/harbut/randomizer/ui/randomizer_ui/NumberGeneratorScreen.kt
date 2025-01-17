@@ -1,6 +1,9 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -11,26 +14,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import den.harbut.randomizer.R
-import den.harbut.randomizer.utils.realRange
+import den.harbut.randomizer.utils.realRangeCount
 import den.harbut.randomizer.utils.generateRandomNumbers
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun NumberGeneratorScreen(modifier: Modifier = Modifier){
-    var randomNumbers by remember { mutableStateOf<List<Long>>(listOf(0)) }
+    var randomNumbers by remember { mutableStateOf<List<Int>>(listOf(0)) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var minNumber by rememberSaveable { mutableStateOf("0") }
     var maxNumber by rememberSaveable { mutableStateOf("10") }
@@ -53,7 +60,17 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
             ) {
                 Button(
                     onClick = {
-                        randomNumbers = generateRandomNumbers(minNumber, maxNumber, numbersToGenerate, avoidDuplicates)
+                        try {
+                            randomNumbers = generateRandomNumbers(
+                                minNumber,
+                                maxNumber,
+                                numbersToGenerate,
+                                avoidDuplicates
+                            )
+                            errorText = ""
+                        } catch (e: Exception){
+                            errorText = e.message ?: "unknown error"
+                        }
                     },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -74,22 +91,12 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (randomNumbers.size < 2) {
-                if(randomNumbers.isNotEmpty()){
-                    RandomNumberCard(randomNumbers[0])
-                }
+        ) { if(errorText.isNotEmpty()){
+            ExceptionMessage(errorText)
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    randomNumbers.forEach { number ->
-                        Text(
-                            text = number.toString(),
-                            style = MaterialTheme.typography.displayLarge.copy(fontSize = 60.sp),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .padding(4.dp)
-                        )
-                    }
+                    RandomNumbersCards(randomNumbers)
+
                     if (randomNumbers.isEmpty()){
                         Text(stringResource(R.string.no_number_generated),
                             style = MaterialTheme.typography.displayLarge.copy(fontSize = 60.sp),
@@ -143,8 +150,13 @@ fun ParametersDialog(
 ) {
     var minNumberState by remember { mutableStateOf(minNumber) }
     var maxNumberState by remember { mutableStateOf(maxNumber) }
+    var numbersToGenerateState by remember { mutableStateOf(numbersToGenerate) }
+    var animationDurationState by remember { mutableStateOf(animationDuration) }
     var isMinNumberFocused by remember { mutableStateOf(false) }
     var isMaxNumberFocused by remember { mutableStateOf(false) }
+    var isNumbersToGenerateFocused by remember { mutableStateOf(false) }
+    var isAnimationDurationFocused by remember { mutableStateOf(false) }
+
 
     Dialog(onDismissRequest ={ onDismissRequest(minNumberState, maxNumberState)}) {
         Card(modifier = Modifier.padding(16.dp)) {
@@ -158,7 +170,7 @@ fun ParametersDialog(
                 OutlinedTextField(
                     value = minNumberState,
                     onValueChange = { newValue ->
-                        if (newValue.length <= 8 && newValue.matches(Regex("-?\\d*"))) { // Обмеження до 8 символів
+                        if (newValue.length <= 9 && newValue.matches(Regex("-?\\d*"))) { // Обмеження до 8 символів
                             minNumberState = newValue
                         }
                     },
@@ -181,7 +193,7 @@ fun ParametersDialog(
                 OutlinedTextField(
                     value = maxNumberState,
                     onValueChange = { newValue ->
-                        if (newValue.length <= 8 && newValue.matches(Regex("-?\\d*"))) { // Обмеження до 8 символів
+                        if (newValue.length <= 9 && newValue.matches(Regex("-?\\d*"))) { // Обмеження до 8 символів
                             maxNumberState = newValue
                         }
                     },
@@ -201,41 +213,12 @@ fun ParametersDialog(
                     }
                 )
 
-
-                val numbersToGenerateMax = rememberSaveable(minNumber, maxNumber) {
-                    val min = minNumber.toLongOrNull() ?: 0
-                    val max = maxNumber.toLongOrNull() ?: 0
-                    realRange(min, max).count().toString()
-                }
-
-                var numbersToGenerateState by remember(numbersToGenerate, numbersToGenerateMax, avoidDuplicates) {
-                    mutableStateOf(numbersToGenerate)
-                }
-                var isFocused by rememberSaveable{ mutableStateOf(false) }
-
-                LaunchedEffect(avoidDuplicates, numbersToGenerateMax, minNumberState, maxNumberState) {
-                    if (avoidDuplicates && numbersToGenerateState.isNotEmpty() && numbersToGenerateState.toInt() > numbersToGenerateMax.toInt()) {
-                        numbersToGenerateState = numbersToGenerateMax
-                        onNumbersToGenerateChange(numbersToGenerateMax)
-                    }
-                }
-
                 OutlinedTextField(
                     value = numbersToGenerateState,
                     onValueChange = { newValue ->
-                        if (newValue.length <= 2 && newValue.all { it.isDigit() } || newValue.isEmpty()) {
-                            var parsedValue = newValue
-
-                            numbersToGenerateState =  parsedValue.toString()
-
-                            if (avoidDuplicates && (parsedValue.toIntOrNull()
-                                    ?: 0) > numbersToGenerateMax.toInt()
-                            ) {
-                                numbersToGenerateState = numbersToGenerateMax
-                                onNumbersToGenerateChange(numbersToGenerateMax)
-                            } else {
-                                onNumbersToGenerateChange(numbersToGenerateState)
-                            }
+                        if (newValue.length <= 3 && newValue.matches(Regex("\\d*"))) { // Обмеження до 8 символів
+                            numbersToGenerateState = newValue
+                            onNumbersToGenerateChange(newValue)
                         }
                     },
                     label = { Text(stringResource(R.string.numbers_to_generate)) },
@@ -243,18 +226,16 @@ fun ParametersDialog(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next
                     ),
-                    enabled = !avoidDuplicates || numbersToGenerateMax != "0",
-                    modifier = Modifier.onFocusChanged { focusState -> // Обробка зміни фокусу
-                        isFocused = focusState.isFocused
-                        if (!focusState.isFocused && numbersToGenerateState.isEmpty()) { // Перевірка при втраті фокусу
+                    modifier = Modifier.onFocusChanged { focusState ->
+                        isNumbersToGenerateFocused = focusState.isFocused
+                        if (!focusState.isFocused && numbersToGenerateState.isEmpty()) {
                             numbersToGenerateState = "1"
                             onNumbersToGenerateChange("1")
+                        } else {
+                            onNumbersToGenerateChange(numbersToGenerateState)
                         }
                     }
                 )
-
-                var animationDurationState by remember { mutableStateOf(animationDuration) }
-                var isAnimationDurationFocused by remember { mutableStateOf(false) }
 
                 OutlinedTextField(
                     value = animationDurationState,
@@ -280,13 +261,7 @@ fun ParametersDialog(
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = avoidDuplicates, onCheckedChange = { newValue ->
-                        onAvoidDuplicatesChange(newValue)
-                        if (newValue && numbersToGenerateState.isNotEmpty() && numbersToGenerateState.toInt() > numbersToGenerateMax.toInt()) {
-                            numbersToGenerateState = numbersToGenerateMax
-                            onNumbersToGenerateChange(numbersToGenerateMax)
-                        }
-                    })
+                    Checkbox(checked = avoidDuplicates, onCheckedChange = onAvoidDuplicatesChange)
                     Text(stringResource(R.string.avoid_duplicates))
                 }
 
@@ -310,37 +285,117 @@ fun ParametersDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RandomNumberCard(number: Long, modifier: Modifier = Modifier){
+fun RandomNumberCard(number: Int, order: Int = 0, size: Int = 130){
     val text = number.toString()
     val fontSize = when(text.length){
-        in 0..3 -> 65.sp
-        4 -> 55.sp
-        5 -> 45.sp
-        6 -> 40.sp
-        in 7..8 -> 30.sp
-        else -> 25.sp
+        in 0..3 -> 55.sp
+        4 -> 50.sp
+        5 -> 40.sp
+        6 -> 35.sp
+        in 7..8 -> 20.sp
+        else -> 15.sp
     }
+
     Card(modifier =  Modifier
         .padding(4.dp)
-        .size(150.dp)) {
-        Box(contentAlignment = Alignment.Center,
-            modifier = Modifier
+        .size(size.dp)) {
+        Box(modifier = Modifier
             .padding(8.dp)
-            .fillMaxSize()){
-            Text(
+            .fillMaxSize())
+        {
+                Text(text = (order + 1).toString(),
+                    fontSize = 10.sp,
+                    modifier = Modifier.align(Alignment.TopStart))
+            ResponsiveText(
                 text = number.toString(),
-                fontSize = fontSize,
-                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(8.dp).align(Alignment.Center)
             )
         }
     }
 }
 
 @Composable
-fun RandomNumbersCards(numbers: List<Long>, modifier: Modifier = Modifier){
+fun RandomNumbersCards(numbers: List<Int>, modifier: Modifier = Modifier){
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(
+            if(numbers.size < 3){
+                numbers.size
+            } else {
+                3
+            },
+        ),
+        modifier = Modifier.padding(12.dp)
+    ) {
+        items(numbers.size) { index ->
+            RandomNumberCard(numbers[index], order = index)
+        }
+    }
+}
+
+@Composable
+fun ExceptionMessage(message: String, modifier: Modifier = Modifier){
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp)
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_error),
+            contentDescription = null,
+            modifier = Modifier.size(100.dp)
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = message,
+            textAlign = TextAlign.Center,
+            fontSize = 20.sp
+        )
+    }
 
 }
 
+@Composable
+fun ResponsiveText(text: String, modifier: Modifier = Modifier) {
+    val textMeasurer = rememberTextMeasurer() // Для вимірювання ширини тексту
+    var textSize by remember { mutableStateOf(12.sp) }
+    var containerWidth by remember { mutableStateOf(0) }
+
+    Box(
+        modifier = modifier
+            .onSizeChanged { size ->
+                containerWidth = size.width
+            }
+    ) {
+        LaunchedEffect(containerWidth, text) {
+            if (containerWidth > 0) {
+                // Підбираємо розмір шрифту, щоб текст уміщувався
+                var size = 45f // Початковий розмір шрифту
+                while (size > 8f) {
+                    val measuredWidth = textMeasurer.measure(
+                        text = AnnotatedString(text),
+                        style = TextStyle(fontSize = size.sp)
+                    ).size.width
+                    if (measuredWidth <= containerWidth) {
+                        break
+                    }
+                    size -= 1f // Зменшуємо розмір шрифту поступово
+                }
+                textSize = size.sp
+            }
+        }
+
+        Text(
+            text = text,
+            fontSize = textSize,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
@@ -351,6 +406,6 @@ fun NumberGeneratorScreenPreview(){
 @Preview(showBackground = true)
 @Composable
 fun RandomNumberCardPreview(){
-    RandomNumberCard(999L
+    RandomNumberCard(999
     )
 }

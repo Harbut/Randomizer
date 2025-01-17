@@ -18,4 +18,5 @@
     <string name="show_sum" translatable="false">Show sum</string>
     <string name="cancel" translatable="false">Cancel</string>
     <string name="done" translatable="false">Done</string>
+    <string name="unknown_error" translatable="false">Unknown Error</string>
 </resources>
