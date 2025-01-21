@@ -2,7 +2,8 @@
     <string name="app_name">Randomizer</string>
     <string name="min_number">From</string>
     <string name="max_number">To</string>
-    <string name="generate_number">Generate</string>
+    <string name="generate" translatable="false">Generate</string>
+    <string name="generated" translatable="false">Generated...</string>
     <string name="random_number">Random Number:</string>
     <string name="incorrect_input">Enter valid numbers.</string>
     <string name="invalid_range">The range must contain at least one number</string>

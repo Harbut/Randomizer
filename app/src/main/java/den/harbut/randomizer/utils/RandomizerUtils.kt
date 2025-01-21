@@ -10,51 +10,67 @@ fun generateRandomNumbers(
     numbersToGenerate: String,
     avoidDuplicates: Boolean
 ): List<Int> {
-    val min = minNumber.toInt()
-    val max = maxNumber.toInt()
+    val min = minNumber.toIntOrNull() ?: 0 // Обробка помилок парсингу
+    val max = maxNumber.toIntOrNull() ?: 10 // Значення за замовчуванням
     val count = numbersToGenerate.toIntOrNull() ?: 1
 
-    if(count <= 0) {
+    if (min > max) {
+        throw IllegalArgumentException("Мінімальне число має бути менше або дорівнювати максимальному")
+    }
+
+    if (count <= 0) {
         throw IllegalArgumentException("Кількість чисел має бути більше 0")
     }
 
     val range = realRange(min, max)
 
-    if(avoidDuplicates && range.count().toLong() < count) {
+    if (avoidDuplicates && range.count() < count) { // count() повертає Int, тому порівнюємо з Int
         throw IllegalArgumentException("Діапазон занадто малий для такої кількості унікальних чисел")
     }
 
-    return if(avoidDuplicates) {
-        generateUniqueNumbers(range, count)
+    return if (avoidDuplicates) {
+        generateUniqueNumbersReservoir(range, count)
     } else {
         generateNumbers(range, count)
     }
 }
 
-fun realRange(min: Int, max: Int): IntRange{
-    val realMin = min(min, max)
-    val realMax = max(min, max)
-    return realMin..realMax
+fun realRange(min: Int, max: Int): IntRange {
+    return min(min, max)..max(min, max) // Коротший запис
 }
 
-fun realRangeCount(min: Int, max: Int): Int{
-    val realMin = min(min, max)
-    val realMax = max(min, max)
-    val range = realMin..realMax
-    return range.count()
+private fun generateNumbers(range: IntRange, count: Int): List<Int> {
+    return List(count) { range.random() } // Використовуємо range.random()
 }
 
-private fun generateNumbers(range: IntRange, count: Int): List<Int>{
-    return List(count){Random.nextInt(range.first, range.last + 1)}
+private fun generateUniqueNumbers(range: IntRange, count: Int): List<Int> {
+    return range.shuffled().take(count) // Оптимальний варіант
 }
 
-private fun generateUniqueNumbers(range: IntRange, count: Int): List<Int>{
-    val numbers = mutableListOf<Int>()
-    while (numbers.size < count){
-        val number = Random.nextInt(range.first, range.last + 1)
-        if (!numbers.contains(number)){
-            numbers.add(number)
+private fun generateUniqueNumbersUsingSet(range: IntRange, count: Int): List<Int> {
+    if (range.count() < count) {
+        throw IllegalArgumentException("Діапазон занадто малий")
+    }
+
+    val numbers = range.toSet().shuffled()
+    return numbers.take(count)
+}
+
+private fun generateUniqueNumbersReservoir(range: IntRange, count: Int): List<Int> {
+    if (range.count() < count) {
+        throw IllegalArgumentException("Діапазон занадто малий")
+    }
+
+    val reservoir = mutableListOf<Int>()
+    for (i in range) {
+        if (reservoir.size < count) {
+            reservoir.add(i)
+        } else {
+            val j = Random.nextInt(0, i + 1)
+            if (j < count) {
+                reservoir[j] = i
+            }
         }
     }
-    return numbers
+    return reservoir
 }

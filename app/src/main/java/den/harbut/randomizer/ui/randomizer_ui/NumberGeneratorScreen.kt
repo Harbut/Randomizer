@@ -1,5 +1,6 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -27,12 +28,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import den.harbut.randomizer.R
-import den.harbut.randomizer.utils.realRangeCount
 import den.harbut.randomizer.utils.generateRandomNumbers
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.Dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -46,6 +55,12 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
     var avoidDuplicates by rememberSaveable { mutableStateOf(false) }
     var showSum by rememberSaveable { mutableStateOf(false) }
     var errorText by rememberSaveable { mutableStateOf("") }
+
+    var isGenerating by remember { mutableStateOf(false) }
+    var progress by remember { mutableStateOf(0f) }
+    val scope = rememberCoroutineScope()
+
+
     val context = LocalContext.current
 
     Scaffold(
@@ -60,21 +75,27 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
             ) {
                 Button(
                     onClick = {
-                        try {
-                            randomNumbers = generateRandomNumbers(
-                                minNumber,
-                                maxNumber,
-                                numbersToGenerate,
-                                avoidDuplicates
-                            )
-                            errorText = ""
-                        } catch (e: Exception){
-                            errorText = e.message ?: "unknown error"
+                        isGenerating = true
+                        Log.d("NumberGenerator", "isGeneration = $isGenerating")
+                        scope.launch(Dispatchers.Default) {
+                            try {
+                                // Логіка генерації чисел з розрахунком прогресу
+                                randomNumbers = generateRandomNumbersWithProgress(
+                                    minNumber,
+                                    maxNumber,
+                                    numbersToGenerate,
+                                    avoidDuplicates
+                                )
+                            } finally {
+                                isGenerating = false
+                                Log.d("NumberGenerator", "isGeneration = $isGenerating")
+                            }
                         }
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(stringResource(R.string.generate_number))
+                    Text(if(isGenerating) stringResource(R.string.generated) else stringResource(R.string.generate)
+                    )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 IconButton(
@@ -85,25 +106,34 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) { if(errorText.isNotEmpty()){
-            ExceptionMessage(errorText)
-            } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    RandomNumbersCards(randomNumbers)
+        Box(
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (errorText.isNotEmpty()) {
+                    ExceptionMessage(errorText)
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        RandomNumbersCards(randomNumbers)
 
-                    if (randomNumbers.isEmpty()){
-                        Text(stringResource(R.string.no_number_generated),
-                            style = MaterialTheme.typography.displayLarge.copy(fontSize = 60.sp),
-                            textAlign = TextAlign.Center
-                        )
+                        if (randomNumbers.isEmpty()) {
+                            Text(
+                                stringResource(R.string.no_number_generated),
+                                style = MaterialTheme.typography.displayLarge.copy(fontSize = 60.sp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
+            }
+            if (isGenerating) {
+                CircularProgressIndicator()
             }
         }
 
@@ -287,14 +317,6 @@ fun ParametersDialog(
 @Composable
 fun RandomNumberCard(number: Int, order: Int = 0, size: Int = 130){
     val text = number.toString()
-    val fontSize = when(text.length){
-        in 0..3 -> 55.sp
-        4 -> 50.sp
-        5 -> 40.sp
-        6 -> 35.sp
-        in 7..8 -> 20.sp
-        else -> 15.sp
-    }
 
     Card(modifier =  Modifier
         .padding(4.dp)
@@ -329,6 +351,32 @@ fun RandomNumbersCards(numbers: List<Int>, modifier: Modifier = Modifier){
         items(numbers.size) { index ->
             RandomNumberCard(numbers[index], order = index)
         }
+    }
+}
+
+@Composable
+fun CircularProgressBar(
+    progress: Float,
+    color: Color = colorResource(R.color.black),
+    strokeWidth: Dp = 4.dp
+) {
+    val animationSpec = rememberInfiniteTransition().animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    Canvas(modifier = Modifier.size(100.dp)) {
+        drawArc(
+            color = color,
+            startAngle = -90f,
+            sweepAngle = 360f * animationSpec.value,
+            useCenter = false,
+            style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
+        )
     }
 }
 
@@ -395,6 +443,15 @@ fun ResponsiveText(text: String, modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         )
     }
+}
+
+suspend fun generateRandomNumbersWithProgress(
+    minNumber: String,
+    maxNumber: String,
+    numbersToGenerate: String,
+    avoidDuplicates: Boolean
+): List<Int> {
+    return generateRandomNumbers(minNumber, maxNumber, numbersToGenerate, avoidDuplicates)
 }
 
 @Preview(showSystemUi = true, showBackground = true)
