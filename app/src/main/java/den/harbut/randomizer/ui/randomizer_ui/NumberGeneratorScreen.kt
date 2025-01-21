@@ -80,13 +80,16 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
                         scope.launch(Dispatchers.Default) {
                             try {
                                 // Логіка генерації чисел з розрахунком прогресу
+                                errorText = ""
                                 randomNumbers = generateRandomNumbersWithProgress(
                                     minNumber,
                                     maxNumber,
                                     numbersToGenerate,
                                     avoidDuplicates
                                 )
-                            } finally {
+                            } catch (e: Exception){
+                                errorText = e.message.toString()
+                            }finally {
                                 isGenerating = false
                                 Log.d("NumberGenerator", "isGeneration = $isGenerating")
                             }

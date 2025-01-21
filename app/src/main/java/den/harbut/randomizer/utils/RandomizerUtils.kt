@@ -24,12 +24,12 @@ fun generateRandomNumbers(
 
     val range = realRange(min, max)
 
-    if (avoidDuplicates && range.count() < count) { // count() повертає Int, тому порівнюємо з Int
+    if (avoidDuplicates && (range.last - range.first) < count) { // count() повертає Int, тому порівнюємо з Int
         throw IllegalArgumentException("Діапазон занадто малий для такої кількості унікальних чисел")
     }
 
     return if (avoidDuplicates) {
-        generateUniqueNumbersReservoir(range, count)
+        generateUniqueNumbersUsingSet(range, count)
     } else {
         generateNumbers(range, count)
     }
@@ -43,34 +43,6 @@ private fun generateNumbers(range: IntRange, count: Int): List<Int> {
     return List(count) { range.random() } // Використовуємо range.random()
 }
 
-private fun generateUniqueNumbers(range: IntRange, count: Int): List<Int> {
-    return range.shuffled().take(count) // Оптимальний варіант
-}
-
 private fun generateUniqueNumbersUsingSet(range: IntRange, count: Int): List<Int> {
-    if (range.count() < count) {
-        throw IllegalArgumentException("Діапазон занадто малий")
-    }
-
-    val numbers = range.toSet().shuffled()
-    return numbers.take(count)
-}
-
-private fun generateUniqueNumbersReservoir(range: IntRange, count: Int): List<Int> {
-    if (range.count() < count) {
-        throw IllegalArgumentException("Діапазон занадто малий")
-    }
-
-    val reservoir = mutableListOf<Int>()
-    for (i in range) {
-        if (reservoir.size < count) {
-            reservoir.add(i)
-        } else {
-            val j = Random.nextInt(0, i + 1)
-            if (j < count) {
-                reservoir[j] = i
-            }
-        }
-    }
-    return reservoir
+    return List(count) { range.random() }
 }
