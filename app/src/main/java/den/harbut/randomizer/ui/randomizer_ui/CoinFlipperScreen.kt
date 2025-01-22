@@ -55,7 +55,7 @@ fun CoinFlipperScreen(modifier: Modifier = Modifier){
                     .fillMaxWidth()
             ) {
                 if (showDescriptor) {
-                    Text("Value: ${if(coinSide == 0) "head" else "tails"}", fontSize = 16.sp)
+                    Text("Value: ${if(isGenerating) "" else if(coinSide == 0) "head" else "tails"}", fontSize = 16.sp)
                 }
                 Row(
                     modifier = Modifier

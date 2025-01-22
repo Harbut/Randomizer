@@ -14,10 +14,10 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun Navigation(navController: NavHostController, context: Context) {
+fun Navigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Screen.NumberGenerator.route) {
         composable(Screen.NumberGenerator.route) { NumberGeneratorScreen() }
-        composable(Screen.DiceRoller.route) { DiceRollerScreen(context = context) }
+        composable(Screen.DiceRoller.route) { DiceRollerScreen() }
         composable(Screen.CoinFlipper.route) { CoinFlipperScreen() }
     }
 }
