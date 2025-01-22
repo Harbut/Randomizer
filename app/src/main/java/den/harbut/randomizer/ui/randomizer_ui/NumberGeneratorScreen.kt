@@ -46,7 +46,7 @@ import kotlin.random.Random
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun NumberGeneratorScreen(modifier: Modifier = Modifier){
-    var randomNumbers by remember { mutableStateOf<List<Int>>(listOf(0)) }
+    var randomNumbers by rememberSaveable { mutableStateOf<List<Int>>(listOf(0)) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var minNumber by rememberSaveable { mutableStateOf("0") }
     var maxNumber by rememberSaveable { mutableStateOf("10") }
@@ -57,7 +57,6 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
     var errorText by rememberSaveable { mutableStateOf("") }
 
     var isGenerating by remember { mutableStateOf(false) }
-    var progress by remember { mutableStateOf(0f) }
     val scope = rememberCoroutineScope()
 
 
@@ -66,45 +65,60 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
-            Row(
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = {
-                        isGenerating = true
-                        Log.d("NumberGenerator", "isGeneration = $isGenerating")
-                        scope.launch(Dispatchers.Default) {
-                            try {
-                                // Логіка генерації чисел з розрахунком прогресу
-                                errorText = ""
-                                randomNumbers = generateRandomNumbersWithProgress(
-                                    minNumber,
-                                    maxNumber,
-                                    numbersToGenerate,
-                                    avoidDuplicates
-                                )
-                            } catch (e: Exception){
-                                errorText = e.message.toString()
-                            }finally {
-                                isGenerating = false
-                                Log.d("NumberGenerator", "isGeneration = $isGenerating")
-                            }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(if(isGenerating) stringResource(R.string.generated) else stringResource(R.string.generate)
-                    )
+                if (showSum) {
+                    Text("Sum: ${randomNumbers.sum()}", fontSize = 16.sp)
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                IconButton(
-                    onClick = { showDialog = true }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painterResource(R.drawable.ic_tune), contentDescription = null /* TODO */)
+                    Button(
+                        onClick = {
+                            isGenerating = true
+                            Log.d("NumberGenerator", "isGeneration = $isGenerating")
+                            scope.launch(Dispatchers.Default) {
+                                try {
+                                    // Логіка генерації чисел з розрахунком прогресу
+                                    errorText = ""
+                                    randomNumbers = generateRandomNumbersWithProgress(
+                                        minNumber,
+                                        maxNumber,
+                                        numbersToGenerate,
+                                        avoidDuplicates
+                                    )
+                                } catch (e: Exception) {
+                                    errorText = e.message.toString()
+                                } finally {
+                                    isGenerating = false
+                                    Log.d("NumberGenerator", "isGeneration = $isGenerating")
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            if (isGenerating) stringResource(R.string.generated) else stringResource(
+                                R.string.generate
+                            )
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    IconButton(
+                        onClick = { showDialog = true }
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_tune),
+                            contentDescription = null /* TODO */
+                        )
+                    }
                 }
             }
         }
@@ -357,31 +371,7 @@ fun RandomNumbersCards(numbers: List<Int>, modifier: Modifier = Modifier){
     }
 }
 
-@Composable
-fun CircularProgressBar(
-    progress: Float,
-    color: Color = colorResource(R.color.black),
-    strokeWidth: Dp = 4.dp
-) {
-    val animationSpec = rememberInfiniteTransition().animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000),
-            repeatMode = RepeatMode.Restart
-        )
-    )
 
-    Canvas(modifier = Modifier.size(100.dp)) {
-        drawArc(
-            color = color,
-            startAngle = -90f,
-            sweepAngle = 360f * animationSpec.value,
-            useCenter = false,
-            style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
-        )
-    }
-}
 
 @Composable
 fun ExceptionMessage(message: String, modifier: Modifier = Modifier){

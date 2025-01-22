@@ -7,8 +7,8 @@ import kotlin.random.Random
 fun generateRandomNumbers(
     minNumber: String,
     maxNumber: String,
-    numbersToGenerate: String,
-    avoidDuplicates: Boolean
+    numbersToGenerate: String = "1",
+    avoidDuplicates: Boolean = false
 ): List<Int> {
     val min = minNumber.toIntOrNull() ?: 0 // Обробка помилок парсингу
     val max = maxNumber.toIntOrNull() ?: 10 // Значення за замовчуванням

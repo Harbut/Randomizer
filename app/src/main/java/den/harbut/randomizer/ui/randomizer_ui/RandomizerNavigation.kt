@@ -16,7 +16,7 @@ sealed class Screen(val route: String) {
 fun Navigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Screen.NumberGenerator.route) {
         composable(Screen.NumberGenerator.route) { NumberGeneratorScreen() }
-        composable(Screen.DiceRoller.route) { DiceRoller() }
-        composable(Screen.CoinFlipper.route) { CoinFlipper() }
+        composable(Screen.DiceRoller.route) { DiceRollerScreen() }
+        composable(Screen.CoinFlipper.route) { CoinFlipperScreen() }
     }
 }
