@@ -1,5 +1,10 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -13,6 +18,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -20,8 +27,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import den.harbut.randomizer.R
 import den.harbut.randomizer.utils.generateRandomNumbers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun DiceRollerScreen(modifier: Modifier = Modifier){
@@ -55,9 +65,14 @@ fun DiceRollerScreen(modifier: Modifier = Modifier){
                 ) {
                     Button(
                         onClick = {
-                            randomDices =
-                                generateRandomNumbers(minNumber, maxNumber, diceCount, false)
-                        },
+                            scope.launch {
+                                isGenerating = true
+                                randomDices =
+                                    generateRandomNumbers(minNumber, maxNumber, diceCount, false)
+                                delay(animationDuration.toLongOrNull() ?: 0)
+                                isGenerating = false
+                            }
+                                  },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
@@ -84,7 +99,11 @@ fun DiceRollerScreen(modifier: Modifier = Modifier){
                 .padding(paddingValues),
             contentAlignment = Alignment.Center
         ){
+            if(isGenerating){
+                DicesGridRolling(randomDices)
+            } else{
             DicesGrid(randomDices)
+                }
         }
     }
     if(showDialog){
@@ -116,7 +135,7 @@ fun DicesGrid(numbers: List<Int>, modifier: Modifier = Modifier){
             Image(painter = painterResource(diceImage(numbers[index])),
                 contentDescription = index.toString(),
                 modifier
-                    .size(100.dp)
+                    .size(150.dp)
                     .padding(bottom = 16.dp))
         }
     }
@@ -210,6 +229,24 @@ fun ParametersDialog(
     }
 }
 
+@Composable
+fun DicesGridRolling(numbers: List<Int>, modifier: Modifier = Modifier){
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(
+            if(numbers.size < 3){
+                numbers.size
+            } else {
+                3
+            },
+        ),
+        modifier = Modifier.padding(12.dp)
+    ) {
+        items(numbers.size) { index ->
+            ContinuouslyRotatingDice()
+        }
+    }
+}
+
 
 private fun diceImage(index: Int): Int{
     return when(index){
@@ -219,5 +256,61 @@ private fun diceImage(index: Int): Int{
         4 -> R.drawable.ic_dice4
         5 -> R.drawable.ic_dice5
         else -> R.drawable.ic_dice6
+    }
+}
+
+@Composable
+fun ContinuouslyRotatingDice() {
+    val infiniteTransition = rememberInfiniteTransition()
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 400, easing = LinearEasing)
+        )
+    )
+
+    FlippableCardR(
+        frontContent = {
+            // Содержимое передней стороны
+            Image(painter = painterResource(R.drawable.ic_dice6),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(150.dp))
+        },
+        backContent = {},
+        rotationAngle = angle
+    )
+}
+
+
+
+@Composable
+fun FlippableCardR(
+    frontContent: @Composable () -> Unit,
+    backContent: @Composable () -> Unit,
+    rotationAngle: Float
+) {
+    Box(contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(0.5f, 0.5f)
+                rotationY = rotationAngle
+            }
+    ) {
+        Box(contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(-1f) // Отправляем заднюю сторону назад
+                .graphicsLayer {
+                    transformOrigin = TransformOrigin(0.5f, 0.5f)
+                    rotationY = -180f
+                }
+        ) {
+            backContent()
+        }
+        frontContent()
     }
 }
