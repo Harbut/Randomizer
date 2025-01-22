@@ -289,6 +289,7 @@ fun ParametersDialog(
                     onValueChange = { newValue ->
                         if (newValue.length <= 5 && newValue.all { it.isDigit() } || newValue.isEmpty()) { // Обмеження довжини
                             animationDurationState = newValue
+                            onAnimationDurationChange(newValue) // Оновлюємо зовнішнє значення
                         }
                     },
                     label = { Text(stringResource(R.string.animation_duration)) },
@@ -302,7 +303,7 @@ fun ParametersDialog(
                             val parsedValue = animationDurationState.toIntOrNull() ?: 0
                             val correctedValue = parsedValue.coerceIn(0, 10000)
                             animationDurationState = correctedValue.toString()
-                            onAnimationDurationChange(correctedValue.toString())
+                            onAnimationDurationChange(correctedValue.toString()) // Додатковий виклик для фіналізації
                         }
                     }
                 )

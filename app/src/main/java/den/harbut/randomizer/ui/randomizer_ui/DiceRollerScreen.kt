@@ -1,5 +1,6 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
+import android.content.Context
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -28,23 +30,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
+import den.harbut.randomizer.DataStoreManager
 import den.harbut.randomizer.R
 import den.harbut.randomizer.utils.generateRandomNumbers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun DiceRollerScreen(modifier: Modifier = Modifier){
+fun DiceRollerScreen(modifier: Modifier = Modifier, context: Context){
+    val dataStoreManager = remember { DataStoreManager(context) }
+
+    // Читання збережених значень із DataStore
+    val savedDiceCount by dataStoreManager.diceCount.collectAsState(initial = "1")
+    val savedAnimationDuration by dataStoreManager.animationDuration.collectAsState(initial = "1000")
+    val savedShowSum by dataStoreManager.showSum.collectAsState(initial = false)
+
+    // Локальний стан
+    var diceCount by rememberSaveable { mutableStateOf(savedDiceCount) }
+    var animationDuration by rememberSaveable { mutableStateOf(savedAnimationDuration) }
+    var showSum by rememberSaveable { mutableStateOf(savedShowSum) }
+
     var randomDices by rememberSaveable { mutableStateOf(listOf(0)) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
     val minNumber = "1"
     val maxNumber = "6"
-    var diceCount by rememberSaveable { mutableStateOf("1") }
-    var animationDuration by rememberSaveable { mutableStateOf("1000") }
-    var showSum by rememberSaveable { mutableStateOf(false) }
 
     var isGenerating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    // Збереження змін
+    LaunchedEffect(diceCount, animationDuration, showSum) {
+        scope.launch {
+            dataStoreManager.saveDiceCount(diceCount)
+            dataStoreManager.saveAnimationDuration(animationDuration)
+            dataStoreManager.saveShowSum(showSum)
+        }
+    }
 
     Scaffold (
         modifier = modifier.fillMaxSize(),
@@ -193,8 +214,9 @@ fun ParametersDialog(
                 OutlinedTextField(
                     value = animationDurationState,
                     onValueChange = { newValue ->
-                        if (newValue.length <= 5 && newValue.all { it.isDigit() } || newValue.isEmpty()) { // Обмеження довжини
+                        if (newValue.length <= 5 && newValue.matches(Regex("\\d*"))) {
                             animationDurationState = newValue
+                            onAnimationDurationChange(newValue) // Оновлюємо зовнішнє значення
                         }
                     },
                     label = { Text(stringResource(R.string.animation_duration)) },
@@ -208,7 +230,7 @@ fun ParametersDialog(
                             val parsedValue = animationDurationState.toIntOrNull() ?: 0
                             val correctedValue = parsedValue.coerceIn(0, 10000)
                             animationDurationState = correctedValue.toString()
-                            onAnimationDurationChange(correctedValue.toString())
+                            onAnimationDurationChange(correctedValue.toString()) // Додатковий виклик для фіналізації
                         }
                     }
                 )

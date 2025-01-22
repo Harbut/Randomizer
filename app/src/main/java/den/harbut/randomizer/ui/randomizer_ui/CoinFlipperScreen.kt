@@ -151,6 +151,7 @@ fun ParameterDialog(
                     onValueChange = { newValue ->
                         if (newValue.length <= 5 && newValue.all { it.isDigit() } || newValue.isEmpty()) { // Обмеження довжини
                             animationDurationState = newValue
+                            onAnimationDurationChange(newValue)
                         }
                     },
                     label = { Text(stringResource(R.string.animation_duration)) },

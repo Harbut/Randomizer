@@ -1,5 +1,6 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,10 +14,10 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun Navigation(navController: NavHostController) {
+fun Navigation(navController: NavHostController, context: Context) {
     NavHost(navController = navController, startDestination = Screen.NumberGenerator.route) {
         composable(Screen.NumberGenerator.route) { NumberGeneratorScreen() }
-        composable(Screen.DiceRoller.route) { DiceRollerScreen() }
+        composable(Screen.DiceRoller.route) { DiceRollerScreen(context = context) }
         composable(Screen.CoinFlipper.route) { CoinFlipperScreen() }
     }
 }
