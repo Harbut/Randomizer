@@ -77,7 +77,7 @@ fun DiceRollerScreen(modifier: Modifier = Modifier){
                     ) {
                         Text(
                             if (isGenerating) stringResource(R.string.generated) else stringResource(
-                                R.string.generate
+                                R.string.roll
                             )
                         )
                     }
