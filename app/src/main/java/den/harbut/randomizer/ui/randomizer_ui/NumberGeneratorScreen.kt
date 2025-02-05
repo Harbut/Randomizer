@@ -36,17 +36,21 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun NumberGeneratorScreen(modifier: Modifier = Modifier){
-    var randomNumbers by rememberSaveable { mutableStateOf<List<Int>>(listOf(0)) }
+    var randomNumbers by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var minNumber by rememberSaveable { mutableStateOf("0") }
     var maxNumber by rememberSaveable { mutableStateOf("10") }
@@ -58,6 +62,7 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
 
     var isGenerating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
 
 
     val context = LocalContext.current
@@ -94,6 +99,7 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
                                         numbersToGenerate,
                                         avoidDuplicates
                                     )
+                                    delay(animationDuration.toLongOrNull() ?: 1000L)
                                 } catch (e: Exception) {
                                     errorText = e.message.toString()
                                 } finally {
@@ -135,23 +141,19 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
             ) {
                 if (errorText.isNotEmpty()) {
                     ExceptionMessage(errorText)
+                } else if (isGenerating){
+                    ContinuouslyRotatingLogo()
+                } else if (randomNumbers.isEmpty()){
+                    Image(
+                        painter = painterResource(R.drawable.logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(100.dp)
+                    )
                 } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        RandomNumbersCards(randomNumbers)
-
-                        if (randomNumbers.isEmpty()) {
-                            Text(
-                                stringResource(R.string.no_number_generated),
-                                style = MaterialTheme.typography.displayLarge.copy(fontSize = 60.sp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
+                    RandomNumbersCards(randomNumbers)
                 }
             }
-            if (isGenerating) {
-                CircularProgressIndicator()
-            }
+
         }
 
     }
@@ -459,4 +461,60 @@ fun NumberGeneratorScreenPreview(){
 fun RandomNumberCardPreview(){
     RandomNumberCard(999
     )
+}
+
+@Composable
+fun ContinuouslyRotatingLogo() {
+    val infiniteTransition = rememberInfiniteTransition()
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 400, easing = LinearEasing)
+        )
+    )
+
+    FlippableCards(
+        frontContent = {
+            // Содержимое передней стороны
+            Image(painter = painterResource(R.drawable.logo),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(100.dp))
+        },
+        backContent = {},
+        rotationAngle = angle
+    )
+}
+
+
+
+@Composable
+fun FlippableCards(
+    frontContent: @Composable () -> Unit,
+    backContent: @Composable () -> Unit,
+    rotationAngle: Float
+) {
+    Box(contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(0.5f, 0.5f)
+                rotationY = rotationAngle
+            }
+    ) {
+        Box(contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(-1f) // Отправляем заднюю сторону назад
+                .graphicsLayer {
+                    transformOrigin = TransformOrigin(0.5f, 0.5f)
+                    rotationY = -180f
+                }
+        ) {
+            backContent()
+        }
+        frontContent()
+    }
 }
