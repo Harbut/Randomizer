@@ -1,4 +1,4 @@
-package den.harbut.randomizer.ui.randomizer_ui
+package den.harbut.randomizer.ui.randomizer_ui.number_generator_screen
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -33,34 +33,33 @@ import androidx.compose.ui.window.Dialog
 import den.harbut.randomizer.R
 import den.harbut.randomizer.utils.generateRandomNumbers
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
+import den.harbut.randomizer.ui.randomizer_ui.ViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun NumberGeneratorScreen(modifier: Modifier = Modifier){
-    var randomNumbers by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
-    var showDialog by rememberSaveable { mutableStateOf(false) }
-    var minNumber by rememberSaveable { mutableStateOf("0") }
-    var maxNumber by rememberSaveable { mutableStateOf("10") }
-    var numbersToGenerate by rememberSaveable { mutableStateOf("1") }
-    var animationDuration by rememberSaveable { mutableStateOf("1000") }
-    var avoidDuplicates by rememberSaveable { mutableStateOf(false) }
-    var showSum by rememberSaveable { mutableStateOf(false) }
-    var errorText by rememberSaveable { mutableStateOf("") }
 
-    var isGenerating by remember { mutableStateOf(false) }
+    val viewModel: NumberGeneratorViewModel = viewModel(factory = ViewModelFactory())
+
+    val randomNumbers by viewModel.randomNumbers.collectAsState()
+    val minNumber by viewModel.minNumber.collectAsState()
+    val maxNumber by viewModel.maxNumber.collectAsState()
+    val numbersToGenerate by viewModel.numbersToGenerate.collectAsState()
+    val animationDuration by viewModel.animationDuration.collectAsState()
+    val avoidDuplicates by viewModel.avoidDuplicates.collectAsState()
+    val showSum by viewModel.showSum.collectAsState()
+    val errorText by viewModel.errorText.collectAsState()
+    val isGenerating by viewModel.isGenerating.collectAsState()
+
+
+    var showDialog by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
 
@@ -87,26 +86,7 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
                 ) {
                     Button(
                         onClick = {
-                            isGenerating = true
-                            Log.d("NumberGenerator", "isGeneration = $isGenerating")
-                            scope.launch(Dispatchers.Default) {
-                                try {
-                                    // Логіка генерації чисел з розрахунком прогресу
-                                    errorText = ""
-                                    randomNumbers = generateRandomNumbersWithProgress(
-                                        minNumber,
-                                        maxNumber,
-                                        numbersToGenerate,
-                                        avoidDuplicates
-                                    )
-                                    delay(animationDuration.toLongOrNull() ?: 1000L)
-                                } catch (e: Exception) {
-                                    errorText = e.message.toString()
-                                } finally {
-                                    isGenerating = false
-                                    Log.d("NumberGenerator", "isGeneration = $isGenerating")
-                                }
-                            }
+                            viewModel.generateRandomNumbers()
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -159,23 +139,27 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
     }
     if(showDialog){
         ParametersDialog(
-            onDismissRequest = { min, max -> // Лямбда з параметрами
+            onDismissRequest = { min, max, count, duration, duplicates, sum ->
                 showDialog = false
-                minNumber = min
-                maxNumber = max
+                viewModel.updateMinNumber(min)
+                viewModel.updateMaxNumber(max)
+                viewModel.updateNumbersToGenerate(count)
+                viewModel.updateAnimationDuration(duration)
+                viewModel.updateAvoidDuplicates(duplicates)
+                viewModel.updateShowSum(sum)
             },
             minNumber = minNumber,
-            onMinNumberChange = {minNumber = it},
+            onMinNumberChange = {viewModel.updateMinNumber(it)},
             maxNumber = maxNumber,
-            onMaxNumberChange = {maxNumber = it},
+            onMaxNumberChange = {viewModel.updateMaxNumber(it)},
             numbersToGenerate = numbersToGenerate,
-            onNumbersToGenerateChange = {numbersToGenerate = it},
+            onNumbersToGenerateChange = {viewModel.updateNumbersToGenerate(it)},
             animationDuration = animationDuration,
-            onAnimationDurationChange = {animationDuration = it},
+            onAnimationDurationChange = {viewModel.updateAnimationDuration(it)},
             avoidDuplicates = avoidDuplicates,
-            onAvoidDuplicatesChange = {avoidDuplicates = it},
+            onAvoidDuplicatesChange = {viewModel.updateAvoidDuplicates(it)},
             showSum = showSum,
-            onShowSumChange = {showSum = it}
+            onShowSumChange = {viewModel.updateShowSum(it)}
         )
     }
 }
@@ -183,7 +167,7 @@ fun NumberGeneratorScreen(modifier: Modifier = Modifier){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParametersDialog(
-    onDismissRequest: (min: String, max: String) -> Unit,
+    onDismissRequest: (min: String, max: String, count: String, duration: String, duplicates: Boolean, sum: Boolean) -> Unit,
     minNumber: String,
     onMinNumberChange: (String) -> Unit,
     maxNumber: String,
@@ -207,7 +191,7 @@ fun ParametersDialog(
     var isAnimationDurationFocused by remember { mutableStateOf(false) }
 
 
-    Dialog(onDismissRequest ={ onDismissRequest(minNumberState, maxNumberState)}) {
+    Dialog(onDismissRequest ={ onDismissRequest(minNumberState, maxNumberState, numbersToGenerateState, animationDurationState, avoidDuplicates, showSum)}) {
         Card(modifier = Modifier.padding(16.dp)) {
             Column(
                 modifier = Modifier
@@ -324,7 +308,7 @@ fun ParametersDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = {onDismissRequest(minNumberState, maxNumberState)}) {
+                    TextButton(onClick = {onDismissRequest(minNumberState, maxNumberState, numbersToGenerateState, animationDurationState, avoidDuplicates, showSum)}) {
                         Text(stringResource(R.string.done))
                     }
                 }

@@ -1,4 +1,4 @@
-package den.harbut.randomizer.ui.randomizer_ui
+package den.harbut.randomizer.ui.randomizer_ui.coin_flipper_screen
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
@@ -7,8 +7,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -28,33 +26,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import den.harbut.randomizer.R
-import den.harbut.randomizer.utils.generateRandomNumbers
+import den.harbut.randomizer.ui.randomizer_ui.ViewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun DiceRollerScreen(modifier: Modifier = Modifier){
-    var randomDices by rememberSaveable { mutableStateOf(listOf(0)) }
-    var showDialog by rememberSaveable { mutableStateOf(false) }
-    val minNumber = "1"
-    val maxNumber = "6"
-    var diceCount by rememberSaveable { mutableStateOf("1") }
-    var animationDuration by rememberSaveable { mutableStateOf("1000") }
-    var showSum by rememberSaveable { mutableStateOf(false) }
+fun CoinFlipperScreen(modifier: Modifier = Modifier){
 
-    var isGenerating by remember { mutableStateOf(false) }
+    val viewModel: CoinFlipperViewModel = viewModel(factory = ViewModelFactory())
+
+    val coinSide by viewModel.coinSide.collectAsState()
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    val animationDuration by viewModel.animationDuration.collectAsState()
+    val showDescriptor by viewModel.showDescriptor.collectAsState()
+    val isGenerating by viewModel.isGenerating.collectAsState()
     val scope = rememberCoroutineScope()
 
-    Scaffold (
+    Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                if(showSum) {
-                    Text("Sum: ${if(isGenerating) "" else randomDices.sum()}", fontSize = 16.sp)
+                if (showDescriptor) {
+                    Text("Value: ${if(isGenerating) "" else if(coinSide == 0) "head" else "tails"}", fontSize = 16.sp)
                 }
                 Row(
                     modifier = Modifier
@@ -66,18 +65,14 @@ fun DiceRollerScreen(modifier: Modifier = Modifier){
                     Button(
                         onClick = {
                             scope.launch {
-                                isGenerating = true
-                                randomDices =
-                                    generateRandomNumbers(minNumber, maxNumber, diceCount, false)
-                                delay(animationDuration.toLongOrNull() ?: 0)
-                                isGenerating = false
+                                viewModel.flipCoin()
                             }
-                                  },
+                        },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             if (isGenerating) stringResource(R.string.generated) else stringResource(
-                                R.string.roll
+                                R.string.flip
                             )
                         )
                     }
@@ -92,103 +87,59 @@ fun DiceRollerScreen(modifier: Modifier = Modifier){
                     }
                 }
             }
-        }) { paddingValues ->
+        })
+    { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
             contentAlignment = Alignment.Center
         ){
-            if(isGenerating){
-                DicesGridRolling(randomDices)
-            } else{
-            DicesGrid(randomDices)
-                }
+            if(isGenerating) {
+                ContinuouslyRotatingCoin()
+            } else {
+                Image(painter = painterResource(coinImage(coinSide)),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(150.dp))
+            }
         }
     }
     if(showDialog){
-        ParametersDialog(
+        ParameterDialog(
             onDismissRequest = {showDialog = false},
-            diceCount = diceCount,
-            onDiceCountChange = {diceCount = it},
             animationDuration = animationDuration,
-            onAnimationDurationChange = {animationDuration = it},
-            showSum = showSum,
-            onShowSumChange = {showSum = it}
+            onAnimationDurationChange = {viewModel.updateAnimationDuration(it)},
+            showDescriptor = showDescriptor,
+            onShowDescriptorChange = {viewModel.updateShowDescriptor(it)}
         )
     }
 }
 
-@Composable
-fun DicesGrid(numbers: List<Int>, modifier: Modifier = Modifier){
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(
-            if(numbers.size < 3){
-                numbers.size
-            } else {
-                3
-            },
-        ),
-        modifier = Modifier.padding(12.dp)
-    ) {
-        items(numbers.size) { index ->
-            Image(painter = painterResource(diceImage(numbers[index])),
-                contentDescription = index.toString(),
-                modifier
-                    .size(150.dp)
-                    .padding(bottom = 16.dp))
-        }
-    }
+private fun coinImage(index: Int): Int{
+    return if(index == 0) R.drawable.ic_coin_head else R.drawable.ic_coin_tails
 }
 
 @Composable
-fun ParametersDialog(
+fun ParameterDialog(
     onDismissRequest: () -> Unit,
-    diceCount: String,
-    onDiceCountChange: (String) -> Unit,
     animationDuration: String,
     onAnimationDurationChange: (String) -> Unit,
-    showSum: Boolean,
-    onShowSumChange: (Boolean) -> Unit
+    showDescriptor: Boolean,
+    onShowDescriptorChange: (Boolean) -> Unit
 ){
-
-    var diceCountState by remember{ mutableStateOf(diceCount) }
-    var animationDurationState by remember { mutableStateOf(animationDuration) }
-    var isDiceCountFocused by remember{ mutableStateOf(false) }
+    var animationDurationState by remember { mutableStateOf(animationDuration)}
     var isAnimationDurationFocused by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = {onDismissRequest()}) {
+    Dialog(onDismissRequest = onDismissRequest) {
         Card(modifier = Modifier.padding(16.dp)) {
             Column(
                 modifier = Modifier
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
-            ){
+            ) {
                 Text(stringResource(R.string.parameters), style = MaterialTheme.typography.headlineSmall)
-
-                OutlinedTextField(
-                    value = diceCountState,
-                    onValueChange = { newValue ->
-                        if (newValue.length <= 3 && newValue.matches(Regex("\\d*"))) { // Обмеження до 8 символів
-                            diceCountState = newValue
-                            onDiceCountChange(newValue)
-                        }
-                    },
-                    label = { Text(stringResource(R.string.numbers_to_generate)) },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    modifier = Modifier.onFocusChanged { focusState ->
-                        isDiceCountFocused = focusState.isFocused
-                        if (!focusState.isFocused && diceCountState.isEmpty()) {
-                            diceCountState = "1"
-                            onDiceCountChange("1")
-                        } else {
-                            onDiceCountChange(diceCountState)
-                        }
-                    }
-                )
 
                 OutlinedTextField(
                     value = animationDurationState,
@@ -213,9 +164,10 @@ fun ParametersDialog(
                         }
                     }
                 )
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = showSum, onCheckedChange = onShowSumChange)
-                    Text(stringResource(R.string.show_sum))
+                    Checkbox(checked = showDescriptor, onCheckedChange = onShowDescriptorChange)
+                    Text("Show Descriptor text")
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -231,37 +183,7 @@ fun ParametersDialog(
 }
 
 @Composable
-fun DicesGridRolling(numbers: List<Int>, modifier: Modifier = Modifier){
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(
-            if(numbers.size < 3){
-                numbers.size
-            } else {
-                3
-            },
-        ),
-        modifier = Modifier.padding(12.dp)
-    ) {
-        items(numbers.size) { index ->
-            ContinuouslyRotatingDice()
-        }
-    }
-}
-
-
-private fun diceImage(index: Int): Int{
-    return when(index){
-        1 -> R.drawable.ic_dice1
-        2 -> R.drawable.ic_dice2
-        3 -> R.drawable.ic_dice3
-        4 -> R.drawable.ic_dice4
-        5 -> R.drawable.ic_dice5
-        else -> R.drawable.ic_dice6
-    }
-}
-
-@Composable
-fun ContinuouslyRotatingDice() {
+fun ContinuouslyRotatingCoin() {
     val infiniteTransition = rememberInfiniteTransition()
     val angle by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -271,10 +193,10 @@ fun ContinuouslyRotatingDice() {
         )
     )
 
-    FlippableCardR(
+    FlippableCard(
         frontContent = {
             // Содержимое передней стороны
-            Image(painter = painterResource(R.drawable.ic_dice6),
+            Image(painter = painterResource(R.drawable.ic_coin_flippin),
                 contentDescription = null,
                 modifier = Modifier
                     .padding(16.dp)
@@ -288,7 +210,7 @@ fun ContinuouslyRotatingDice() {
 
 
 @Composable
-fun FlippableCardR(
+fun FlippableCard(
     frontContent: @Composable () -> Unit,
     backContent: @Composable () -> Unit,
     rotationAngle: Float
@@ -298,7 +220,7 @@ fun FlippableCardR(
             .fillMaxSize()
             .graphicsLayer {
                 transformOrigin = TransformOrigin(0.5f, 0.5f)
-                rotationY = rotationAngle
+                rotationX = rotationAngle
             }
     ) {
         Box(contentAlignment = Alignment.Center,
@@ -307,7 +229,7 @@ fun FlippableCardR(
                 .zIndex(-1f) // Отправляем заднюю сторону назад
                 .graphicsLayer {
                     transformOrigin = TransformOrigin(0.5f, 0.5f)
-                    rotationY = -180f
+                    rotationX = -180f
                 }
         ) {
             backContent()
