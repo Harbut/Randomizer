@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import den.harbut.randomizer.MainActivity
 import den.harbut.randomizer.ui.randomizer_ui.ViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -44,9 +45,9 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun NumberGeneratorScreen(modifier: Modifier = Modifier){
+fun NumberGeneratorScreen(factory: ViewModelFactory, modifier: Modifier = Modifier){
 
-    val viewModel: NumberGeneratorViewModel = viewModel(factory = ViewModelFactory())
+    val viewModel: NumberGeneratorViewModel = viewModel(factory = factory)
 
     val randomNumbers by viewModel.randomNumbers.collectAsState()
     val minNumber by viewModel.minNumber.collectAsState()
@@ -432,12 +433,6 @@ suspend fun generateRandomNumbersWithProgress(
     avoidDuplicates: Boolean
 ): List<Int> {
     return generateRandomNumbers(minNumber, maxNumber, numbersToGenerate, avoidDuplicates)
-}
-
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-fun NumberGeneratorScreenPreview(){
-    NumberGeneratorScreen()
 }
 
 @Preview(showBackground = true)

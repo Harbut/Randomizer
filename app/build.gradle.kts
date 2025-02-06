@@ -63,7 +63,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose) // Для навігації (рекомендовано)
 
     implementation(libs.androidx.datastore.preferences)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation(libs.androidx.datastore.preferences.v100)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

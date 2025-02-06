@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(viewModelFactory: ViewModelFactory, modifier: Modifier = Modifier) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -106,7 +106,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 }
             ) { padding ->
                 Box(modifier = Modifier.padding(padding)){
-                    Navigation(navController = navController)
+                    Navigation(navController = navController, viewModelFactory)
                 }
             }
         }

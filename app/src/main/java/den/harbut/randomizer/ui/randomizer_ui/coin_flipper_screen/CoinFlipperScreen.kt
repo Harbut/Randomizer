@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -27,15 +28,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import den.harbut.randomizer.MainActivity
 import den.harbut.randomizer.R
 import den.harbut.randomizer.ui.randomizer_ui.ViewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun CoinFlipperScreen(modifier: Modifier = Modifier){
+fun CoinFlipperScreen( factory: ViewModelFactory, modifier: Modifier = Modifier){
 
-    val viewModel: CoinFlipperViewModel = viewModel(factory = ViewModelFactory())
+    val viewModel: CoinFlipperViewModel = viewModel(factory = factory)
 
     val coinSide by viewModel.coinSide.collectAsState()
     var showDialog by rememberSaveable { mutableStateOf(false) }
