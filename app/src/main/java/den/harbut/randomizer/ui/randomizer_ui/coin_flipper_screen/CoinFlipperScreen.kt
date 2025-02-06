@@ -55,7 +55,7 @@ fun CoinFlipperScreen( factory: ViewModelFactory, modifier: Modifier = Modifier)
                     .fillMaxWidth()
             ) {
                 if (showDescriptor) {
-                    Text("Value: ${if(isGenerating) "" else if(coinSide == 0) "head" else "tails"}", fontSize = 16.sp)
+                    Text(if(isGenerating) "" else if(coinSide == 0) stringResource(R.string.coin_side_head) else stringResource(R.string.coin_side_tails), fontSize = 16.sp)
                 }
                 Row(
                     modifier = Modifier
@@ -84,7 +84,7 @@ fun CoinFlipperScreen( factory: ViewModelFactory, modifier: Modifier = Modifier)
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_tune),
-                            contentDescription = null /* TODO */
+                            contentDescription = stringResource(R.string.coin_flipper_parameter_button)
                         )
                     }
                 }
@@ -141,7 +141,7 @@ fun ParameterDialog(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(stringResource(R.string.parameters), style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(R.string.coin_flipper_parameter), style = MaterialTheme.typography.headlineSmall)
 
                 OutlinedTextField(
                     value = animationDurationState,
@@ -169,7 +169,7 @@ fun ParameterDialog(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = showDescriptor, onCheckedChange = onShowDescriptorChange)
-                    Text("Show Descriptor text")
+                    Text(stringResource(R.string.show_descriptor_text))
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),

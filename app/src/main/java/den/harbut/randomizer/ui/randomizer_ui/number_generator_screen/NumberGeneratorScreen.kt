@@ -76,7 +76,7 @@ fun NumberGeneratorScreen(factory: ViewModelFactory, modifier: Modifier = Modifi
                     .fillMaxWidth()
             ) {
                 if (showSum) {
-                    Text("Sum: ${randomNumbers.sum()}", fontSize = 16.sp)
+                    Text(stringResource(R.string.sum) +"${randomNumbers.sum()}", fontSize = 16.sp)
                 }
                 Row(
                     modifier = Modifier
@@ -103,7 +103,7 @@ fun NumberGeneratorScreen(factory: ViewModelFactory, modifier: Modifier = Modifi
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_tune),
-                            contentDescription = null /* TODO */
+                            contentDescription = stringResource(R.string.number_generator_parameters_button)
                         )
                     }
                 }
@@ -199,7 +199,7 @@ fun ParametersDialog(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(stringResource(R.string.parameters), style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(R.string.number_generator_parameters), style = MaterialTheme.typography.headlineSmall)
 
                 OutlinedTextField(
                     value = minNumberState,
@@ -372,7 +372,7 @@ fun ExceptionMessage(message: String, modifier: Modifier = Modifier){
     ) {
         Image(
             painter = painterResource(R.drawable.ic_error),
-            contentDescription = null,
+            contentDescription = message,
             modifier = Modifier.size(100.dp)
         )
         Spacer(Modifier.height(12.dp))

@@ -1,25 +1,45 @@
 <resources>
     <string name="app_name">Randomizer</string>
+
+    <string name="generate">Generate</string>
+    <string name="number_generator_parameters">Number Generator Parameters</string>
+    <string name="number_generator_parameters_button">Number Generator Parameters Button</string>
     <string name="min_number">From</string>
     <string name="max_number">To</string>
-    <string name="generate" translatable="false">Generate</string>
-    <string name="roll">Roll</string>
-    <string name="flip">Flip</string>
-    <string name="generated" translatable="false">Generated...</string>
-    <string name="random_number">Random Number:</string>
-    <string name="incorrect_input">Enter valid numbers.</string>
+    <string name="numbers_to_generate">Numbers to generate</string>
+    <string name="animation_duration">Animation duration (ms)</string>
+    <string name="avoid_duplicates">Avoid duplicates</string>
+    <string name="show_sum">Show sum</string>
     <string name="invalid_range">The range must contain at least one number</string>
+    <string name="incorrect_input">Enter valid numbers.</string>
+    <string name="sum">Sum: </string>
+
+    <string name="generated">Generated...</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
+
+    <string name="roll">Roll</string>
+    <string name="dice_roller">Dice Roller</string>
+    <string name="dice_to_generate">Dice to generate</string>
+    <string name="dice_roller_parameter">Dice Roller Parameters</string>
+    <string name="dice_roller_parameter_button">Dice Roller Parameters Button</string>
+
+    <string name="flip">Flip</string>
+    <string name="coin_flipper">Coin Flipper</string>
+    <string name="coin_flipper_parameter">Coin Flipper Parameters</string>
+    <string name="coin_flipper_parameter_button">Coin Flipper Parameters</string>
+    <string name="show_descriptor_text">Show descriptor text</string>
+    <string name="coin_side_head">Head</string>
+    <string name="coin_side_tails">Tails</string>
+
+    <string name="random_number">Random Number:</string>
+
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="number_generator" translatable="false">Number Generator</string>
-    <string name="dice_roller" translatable="false">Dice Roller</string>
-    <string name="coin_flipper" translatable="false">Coin Flipper</string>
+    <string name="number_generator">Number Generator</string>
     <string name="no_number_generated">0</string>
-    <string name="parameters" translatable="false">Parameters</string>
-    <string name="numbers_to_generate" translatable="false">Numbers to generate</string>
-    <string name="animation_duration" translatable="false">Animation duration (ms)</string>
-    <string name="avoid_duplicates" translatable="false">Avoid duplicates</string>
-    <string name="show_sum" translatable="false">Show sum</string>
-    <string name="cancel" translatable="false">Cancel</string>
-    <string name="done" translatable="false">Done</string>
-    <string name="unknown_error" translatable="false">Unknown Error</string>
+    <string name="parameters">Parameters</string>
+    <string name="unknown_error">Unknown Error</string>
+
+
 </resources>

@@ -61,7 +61,7 @@ fun DiceRollerScreen(factory: ViewModelFactory, modifier: Modifier = Modifier){
                     .fillMaxWidth()
             ) {
                 if(showSum) {
-                    Text("Sum: ${if(isGenerating) "" else randomDices.sum()}", fontSize = 16.sp)
+                    Text(stringResource(R.string.sum) + "${if(isGenerating) "" else randomDices.sum()}", fontSize = 16.sp)
                 }
                 Row(
                     modifier = Modifier
@@ -88,7 +88,7 @@ fun DiceRollerScreen(factory: ViewModelFactory, modifier: Modifier = Modifier){
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_tune),
-                            contentDescription = null /* TODO */
+                            contentDescription = stringResource(R.string.dice_roller_parameter_button)
                         )
                     }
                 }
@@ -165,7 +165,7 @@ fun ParametersDialog(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ){
-                Text(stringResource(R.string.parameters), style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(R.string.dice_roller_parameter), style = MaterialTheme.typography.headlineSmall)
 
                 OutlinedTextField(
                     value = diceCountState,
@@ -175,7 +175,7 @@ fun ParametersDialog(
                             onDiceCountChange(newValue)
                         }
                     },
-                    label = { Text(stringResource(R.string.numbers_to_generate)) },
+                    label = { Text(stringResource(R.string.dice_to_generate)) },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next
