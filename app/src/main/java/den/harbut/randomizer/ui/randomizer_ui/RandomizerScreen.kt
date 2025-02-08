@@ -1,15 +1,21 @@
 package den.harbut.randomizer.ui.randomizer_ui
 
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +39,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -90,6 +98,7 @@ fun MainScreen(viewModelFactory: ViewModelFactory, modifier: Modifier = Modifier
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
+                //ThemeSelector(modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding))
             }
         },
         content = {
@@ -132,6 +141,36 @@ fun DrawerHeader() {
             text = stringResource(id = R.string.app_name), // Назва додатку
             style = MaterialTheme.typography.headlineSmall
         )
+    }
+}
+
+@Composable
+fun ThemeSelector(modifier: Modifier){
+    Column(verticalArrangement = Arrangement.Bottom, modifier = modifier.fillMaxSize()) {
+        Text(text = stringResource(R.string.theme),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = modifier)
+        Spacer(modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+            Card(modifier = modifier, colors = CardColors(Color.White, Color.Black, Color.Black, Color.White)) {
+                Column (horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(painter = painterResource(R.drawable.logo), contentDescription = null, modifier = modifier)
+                    Text(text = stringResource(R.string.light), modifier = modifier)
+                }
+            }
+            Card(modifier = modifier, colors = CardColors(Color.Black, Color.White, Color.White, Color.Black)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(painter = painterResource(R.drawable.logo), contentDescription = null, modifier = modifier)
+                    Text(text = stringResource(R.string.dark), modifier = modifier)
+                }
+            }
+            Card(modifier = modifier) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(painter = painterResource(R.drawable.logo), contentDescription = null, modifier = modifier)
+                    Text(text = stringResource(R.string.system), modifier = modifier)
+                }
+            }
+        }
     }
 }
 

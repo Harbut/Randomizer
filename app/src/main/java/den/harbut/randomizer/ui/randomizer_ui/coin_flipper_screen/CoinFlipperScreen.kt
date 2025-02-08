@@ -16,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -55,7 +56,7 @@ fun CoinFlipperScreen( factory: ViewModelFactory, modifier: Modifier = Modifier)
                     .fillMaxWidth()
             ) {
                 if (showDescriptor) {
-                    Text(if(isGenerating) "" else if(coinSide == 0) stringResource(R.string.coin_side_head) else stringResource(R.string.coin_side_tails), fontSize = 16.sp)
+                    Text(if(isGenerating) "" else if(coinSide == 0) stringResource(R.string.coin_side_head) else stringResource(R.string.coin_side_tails), style = MaterialTheme.typography.headlineSmall)
                 }
                 Row(
                     modifier = Modifier
@@ -71,16 +72,19 @@ fun CoinFlipperScreen( factory: ViewModelFactory, modifier: Modifier = Modifier)
                             }
                         },
                         modifier = Modifier.weight(1f)
+                            .height(60.dp)
                     ) {
                         Text(
                             if (isGenerating) stringResource(R.string.generated) else stringResource(
                                 R.string.flip
-                            )
+                            ),
+                            style = MaterialTheme.typography.headlineSmall
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     IconButton(
-                        onClick = { showDialog = true }
+                        onClick = { showDialog = true },
+                        modifier = Modifier.size(60.dp)
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_tune),
@@ -104,7 +108,8 @@ fun CoinFlipperScreen( factory: ViewModelFactory, modifier: Modifier = Modifier)
                     contentDescription = null,
                     modifier = Modifier
                         .padding(16.dp)
-                        .size(150.dp))
+                        .size(150.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))
             }
         }
     }
@@ -202,7 +207,8 @@ fun ContinuouslyRotatingCoin() {
                 contentDescription = null,
                 modifier = Modifier
                     .padding(16.dp)
-                    .size(150.dp))
+                    .size(150.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))
         },
         backContent = {},
         rotationAngle = angle

@@ -41,5 +41,9 @@
     <string name="parameters">Parameters</string>
     <string name="unknown_error">Unknown Error</string>
 
+    <string name="theme">Theme:</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="system">System</string>
 
 </resources>

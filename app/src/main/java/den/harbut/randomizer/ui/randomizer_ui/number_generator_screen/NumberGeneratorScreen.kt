@@ -33,6 +33,7 @@ import androidx.compose.ui.window.Dialog
 import den.harbut.randomizer.R
 import den.harbut.randomizer.utils.generateRandomNumbers
 import androidx.compose.animation.core.*
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
@@ -76,7 +77,7 @@ fun NumberGeneratorScreen(factory: ViewModelFactory, modifier: Modifier = Modifi
                     .fillMaxWidth()
             ) {
                 if (showSum) {
-                    Text(stringResource(R.string.sum) +"${randomNumbers.sum()}", fontSize = 16.sp)
+                    Text(stringResource(R.string.sum) +"${randomNumbers.sum()}",  style = MaterialTheme.typography.headlineSmall)
                 }
                 Row(
                     modifier = Modifier
@@ -90,16 +91,19 @@ fun NumberGeneratorScreen(factory: ViewModelFactory, modifier: Modifier = Modifi
                             viewModel.generateRandomNumbers()
                         },
                         modifier = Modifier.weight(1f)
+                            .height(60.dp)
                     ) {
                         Text(
                             if (isGenerating) stringResource(R.string.generated) else stringResource(
                                 R.string.generate
-                            )
+                            ),
+                            style = MaterialTheme.typography.headlineSmall
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     IconButton(
-                        onClick = { showDialog = true }
+                        onClick = { showDialog = true },
+                        modifier = Modifier.size(60.dp)
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_tune),
@@ -128,7 +132,8 @@ fun NumberGeneratorScreen(factory: ViewModelFactory, modifier: Modifier = Modifi
                     Image(
                         painter = painterResource(R.drawable.logo),
                         contentDescription = null,
-                        modifier = Modifier.size(100.dp)
+                        modifier = Modifier.size(100.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )
                 } else {
                     RandomNumbersCards(randomNumbers)
@@ -460,7 +465,8 @@ fun ContinuouslyRotatingLogo() {
                 contentDescription = null,
                 modifier = Modifier
                     .padding(16.dp)
-                    .size(100.dp))
+                    .size(100.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))
         },
         backContent = {},
         rotationAngle = angle

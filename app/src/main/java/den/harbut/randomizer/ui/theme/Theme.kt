@@ -9,25 +9,26 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFBB86FC),
+    primary = Color.White,
     onPrimary = Color.Black,
-    secondary = Color(0xFF03DAC5),
+    secondary = Color.White,
     onSecondary = Color.Black,
-    background = Color(0xFF121212),
+    background = Color.Black,
     onBackground = Color.White,
-    surface = Color(0xFF1E1E1E),
+    surface = Color.Black,
     onSurface = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF6200EE),
+    primary = Color.Black,
     onPrimary = Color.White,
-    secondary = Color(0xFF03DAC5),
-    onSecondary = Color.Black,
+    secondary = Color.Black,
+    onSecondary = Color.White,
     background = Color.White,
     onBackground = Color.Black,
     surface = Color.White,
@@ -38,7 +39,7 @@ private val LightColorScheme = lightColorScheme(
 fun RandomizerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

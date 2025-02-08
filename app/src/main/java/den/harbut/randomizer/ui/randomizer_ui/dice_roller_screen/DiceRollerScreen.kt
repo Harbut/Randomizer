@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -61,7 +62,7 @@ fun DiceRollerScreen(factory: ViewModelFactory, modifier: Modifier = Modifier){
                     .fillMaxWidth()
             ) {
                 if(showSum) {
-                    Text(stringResource(R.string.sum) + "${if(isGenerating) "" else randomDices.sum()}", fontSize = 16.sp)
+                    Text(stringResource(R.string.sum) + "${if(isGenerating) "" else randomDices.sum()}", style = MaterialTheme.typography.headlineSmall)
                 }
                 Row(
                     modifier = Modifier
@@ -75,16 +76,19 @@ fun DiceRollerScreen(factory: ViewModelFactory, modifier: Modifier = Modifier){
                             viewModel.rollDices()
                                   },
                         modifier = Modifier.weight(1f)
+                            .height(60.dp)
                     ) {
                         Text(
                             if (isGenerating) stringResource(R.string.generated) else stringResource(
                                 R.string.roll
-                            )
+                            ),
+                            style = MaterialTheme.typography.headlineSmall
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     IconButton(
-                        onClick = { showDialog = true }
+                        onClick = { showDialog = true },
+                        modifier = Modifier.size(60.dp)
                     ) {
                         Icon(
                             painterResource(R.drawable.ic_tune),
@@ -137,7 +141,8 @@ fun DicesGrid(numbers: List<Int>, modifier: Modifier = Modifier){
                 contentDescription = index.toString(),
                 modifier
                     .size(150.dp)
-                    .padding(bottom = 16.dp))
+                    .padding(bottom = 16.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),)
         }
     }
 }
@@ -279,7 +284,8 @@ fun ContinuouslyRotatingDice() {
                 contentDescription = null,
                 modifier = Modifier
                     .padding(16.dp)
-                    .size(150.dp))
+                    .size(150.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))
         },
         backContent = {},
         rotationAngle = angle
